@@ -147,8 +147,8 @@ void cOptimizer::Visit(cUnaryExpr *node)
 
 void cOptimizer::Visit(cIfStmt *node)
 {
-    m_ParentStack.push(node); 
-    VisitAllChildren(node); 
+    m_ParentStack.push(node);
+    VisitAllChildren(node);
     m_ParentStack.pop();
 
     cExpr *cond = node->GetCond();
@@ -156,12 +156,6 @@ void cOptimizer::Visit(cIfStmt *node)
     {
         if (cond->ConstValue()) ReplaceChild(node, node->GetIfStmt());
         else ReplaceChild(node, node->GetElseStmt());
-    }
-    else
-    {
-        m_ParentStack.push(node); 
-        VisitAllChildren(node); 
-        m_ParentStack.pop();
     }
 }
 
