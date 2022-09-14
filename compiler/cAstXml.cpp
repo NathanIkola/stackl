@@ -96,6 +96,10 @@ void cAstXml::Visit(cBreakStmt *node)
 {
     DefaultVisit(node, "BreakStmt");
 }
+void cAstXml::Visit(cCastExpr *node)
+{
+    DefaultVisit(node, "CastExpr");
+}
 void cAstXml::Visit(cContinueStmt *node)
 {
     DefaultVisit(node, "ContinueStmt");
@@ -107,6 +111,10 @@ void cAstXml::Visit(cDecl *node)
 void cAstXml::Visit(cDeclsList *node)
 {
     DefaultVisit(node, "DeclsList");
+}
+void cAstXml::Visit(cDoWhileStmt *node)
+{
+    DefaultVisit(node, "DoWhileStmt");
 }
 void cAstXml::Visit(cExpr *node)
 {

@@ -328,12 +328,12 @@ void cCodeGen::Visit(cPlainVarRef *node)
 {
     if (node->IsFunc())
     {
-        cDecl *decl = node->GetName()->GetDecl();
-        EmitInst("PUSH", dynamic_cast<cFuncDecl*>(decl)->GetFuncName());
+        cFuncDecl *decl = node->GetDecl()->GetFunc();
+        EmitInst("PUSH", decl->GetFuncName());
     }
     else
     {
-        cVarDecl *var = node->GetDecl();
+        cVarDecl *var = node->GetDecl()->GetVar();
 
         if (var->IsConst() && var->HasInit())
         {

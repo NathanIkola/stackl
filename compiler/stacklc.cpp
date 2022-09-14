@@ -19,6 +19,7 @@
 #include "cAstXml.h"
 #include "cSemantics.h"
 #include "cSizeOffset.h"
+#include "cOptimizer.h"
 #include "cCodeGen.h"
 
 #include "../version.h"
@@ -185,6 +186,9 @@ int main(int argc, char **argv)
     {
         cSizeOffset sizer;
         sizer.VisitAllNodes(program);
+
+        cOptimizer optimizer;
+        optimizer.VisitAllNodes(program);
 
         if (Do_Ast)
         {

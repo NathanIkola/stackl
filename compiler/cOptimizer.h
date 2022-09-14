@@ -1,23 +1,13 @@
 #pragma once
-//************************************************
-// cAstXml
-//
-// Author: Philip Howard
-// Email:  phil.howard@oit.edu
-//
-// Visitor to print the AST in XML form
-//
-#include <iostream>
-#include <fstream>
 
+#include <stack>
 #include "cVisitor.h"
-#include "cAstNode.h"
 
-class cAstXml : public cVisitor
+class cOptimizer : public cVisitor
 {
     public:
-        cAstXml(std::string filename);
-        ~cAstXml();
+        cOptimizer();
+        ~cOptimizer();
 
         virtual void VisitAllNodes(cAstNode *node);
 
@@ -61,17 +51,12 @@ class cAstXml : public cVisitor
         virtual void Visit(cStructType *node);
         virtual void Visit(cSymbol *node);
         virtual void Visit(cTypeDecl *node);
-        virtual void Visit(cTypedef *node);
         virtual void Visit(cUnaryExpr *node);
         virtual void Visit(cVarDecl *node);
         virtual void Visit(cVarRef *node);
         virtual void Visit(cWhileStmt *node);
     protected:
-        std::ofstream output;
-
-        void DefaultVisit(cAstNode *node, 
-                std::string name, 
-                std::string attr = std::string(""));
-
-        std::string EscapeBrackets(std::string text);
+        std::stack<cAstNode*> m_ParentStack;
+        void ClearChildren();
+        void ReplaceChild(cAstNode *existingNode, cAstNode *newNode);
 };

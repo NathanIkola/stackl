@@ -21,6 +21,7 @@ class cDecl : public cStmt
     virtual bool IsPointer(){ return false; }
     virtual bool IsArray()  { return false; }
     virtual bool IsInt()    { return false; }
+    virtual bool IsConst()  { return false; }
     virtual cSymbol *GetName()      = 0;
     //virtual int GetOffset() = 0;
     virtual cTypeDecl *GetType();

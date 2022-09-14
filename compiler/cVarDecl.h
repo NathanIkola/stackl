@@ -101,9 +101,12 @@ class cVarDecl : public cDecl
     virtual bool IsGlobal() { return mIsGlobal; }
     virtual bool IsStatic() { return mIsStatic; }
     virtual bool IsExtern() { return mIsExtern; }
-    virtual bool IsConst()  
-        { return mIsConst; }
-        //{ return GetInit()!=nullptr && GetInit()->IsConst(); }
+    virtual bool IsConst()
+    {
+        if (GetType()->IsArray())
+            return mIsConst;
+        return mIsConst && HasInit() && GetInit()->IsConst();
+    }
 
     virtual bool IsVar()    { return true; }
 
@@ -114,7 +117,7 @@ class cVarDecl : public cDecl
     { 
         cTypeDecl* type = (cTypeDecl*)GetChild(0);
 
-        if (IsConst() && HasInit() && type->IsInt()) 
+        if (mIsConst && HasInit() && type->IsInt())
             return GetInit()->GetType();
         else
             return (cTypeDecl*)GetChild(0); 

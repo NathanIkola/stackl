@@ -70,7 +70,8 @@ void cGenAddr::Visit(cFuncCall *node)
 //void cGenAddr::Visit(cParams *node)             { VisitAllChildren(node); }
 void cGenAddr::Visit(cPlainVarRef *node)
 {
-    cVarDecl *var = node->GetDecl();
+    if (!node->GetDecl()->IsVar()) return;
+    cVarDecl *var = node->GetDecl()->GetVar();
     // FIX THIS: need an actual check here
     if (var == NULL)
         fatal_error("Attempted to generate code for a cVarRef without a decl");

@@ -29,8 +29,8 @@ class cPlainVarRef : public cVarRef
         AddChild(id);
     }
 
-    cSymbol*  GetName()          { return (cSymbol*)GetChild(0); }
-    cVarDecl* GetDecl()          { return (cVarDecl*)(GetName()->GetDecl()); }
+    cSymbol* GetName()          { return (cSymbol*)GetChild(0); }
+    cDecl* GetDecl()            { return GetName()->GetDecl(); }
     virtual cTypeDecl *GetType(){ return GetDecl()->GetType(); }
     virtual bool IsStruct()     { return GetType()->IsStruct(); }
     virtual bool IsArray()      { return GetType()->IsArray(); }
@@ -40,11 +40,15 @@ class cPlainVarRef : public cVarRef
     virtual bool IsConst()      { return GetDecl()->IsConst(); }
     virtual int ConstValue()
     {
-        cVarDecl *var = GetDecl();
-        if (var->IsConst() && var->HasInit())
+        if (GetDecl()->IsVar())
         {
-            return var->GetInit()->ConstValue();
+            cVarDecl *var = GetDecl()->GetVar();
+            if (var->IsConst() && (var->GetInit() != nullptr))
+            {
+                return var->GetInit()->ConstValue();
+            }
         }
+        //else if (GetDecl()->IsFunc()) { }
 
         return 0;
     }

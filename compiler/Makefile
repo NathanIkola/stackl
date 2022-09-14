@@ -11,12 +11,12 @@ SOURCES= cAstXml.cpp \
 	cCodeGen.cpp \
 	cDecl.cpp \
 	cGenAddr.cpp \
+	cOptimizer.cpp \
 	cSemantics.cpp \
 	cSizeOffset.cpp \
 	cSymbolTable.cpp \
 	cTypeDecl.cpp \
 	cVisitor.cpp \
-	codegen.cpp \
 	stacklc.cpp \
 
 OBJS= scanner.o \
@@ -29,6 +29,7 @@ OBJS= scanner.o \
 	 cAstXml.o \
 	 cSizeOffset.o \
 	 cGenAddr.o \
+	 cOptimizer.o \
 	 cCodeGen.o \
 	 cTypeDecl.o \
 	 cSemantics.o \
