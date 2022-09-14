@@ -3,8 +3,20 @@
 #include "lex.h"
 
 //************************************************
-cOptimizer::cOptimizer() : cVisitor()
+cOptimizer::cOptimizer(const std::unordered_map<int, bool>& flags, int oLevel) : cVisitor()
 {
+    m_flags = flags;
+
+    switch(oLevel)
+    {
+        case 3:
+        case 2:
+        case 1:
+            EnableFlag(oFlags::reduce_exprs);
+            EnableFlag(oFlags::reduce_const_vars);
+            EnableFlag(oFlags::reduce_branches);
+        default: break;
+    }
 }
 
 cOptimizer::~cOptimizer()
@@ -59,7 +71,7 @@ static bool CanReduce(cDecl *node)
 //************************************************
 void cOptimizer::Visit(cBinaryExpr *node)
 {
-    if (CanReduce(node))
+    if (FlagIsEnabled(oFlags::reduce_exprs) && CanReduce(node))
     {
         cIntExpr *intExpr = new cIntExpr(node->ConstValue());
         ReplaceChild(node, intExpr);
@@ -75,7 +87,7 @@ void cOptimizer::Visit(cBinaryExpr *node)
 void cOptimizer::Visit(cCastExpr *node)
 {
     cExpr* expr = node->GetExpr();
-    if (CanReduce(expr))
+    if (FlagIsEnabled(oFlags::reduce_exprs) && CanReduce(expr))
     {
         cIntExpr *intExpr = new cIntExpr(node->ConstValue());
         ReplaceChild(node, intExpr);
@@ -90,7 +102,7 @@ void cOptimizer::Visit(cCastExpr *node)
 
 void cOptimizer::Visit(cPlainVarRef *node)
 {
-    if (CanReduce(node))
+    if (FlagIsEnabled(oFlags::reduce_const_vars) && CanReduce(node))
     {
         cIntExpr *intExpr = new cIntExpr(node->ConstValue());
         ReplaceChild(node, intExpr);
@@ -105,7 +117,7 @@ void cOptimizer::Visit(cPlainVarRef *node)
 
 void cOptimizer::Visit(cSizeofExpr *node)
 {
-    if (node->IsConst())
+    if (FlagIsEnabled(oFlags::reduce_exprs) && node->IsConst())
     {
         cIntExpr *intExpr = new cIntExpr(node->ConstValue());
         ReplaceChild(node, intExpr);
@@ -120,7 +132,7 @@ void cOptimizer::Visit(cSizeofExpr *node)
 
 void cOptimizer::Visit(cUnaryExpr *node)
 {
-    if (CanReduce(node))
+    if (FlagIsEnabled(oFlags::reduce_exprs) && CanReduce(node))
     {
         cIntExpr *intExpr = new cIntExpr(node->ConstValue());
         ReplaceChild(node, intExpr);
@@ -140,7 +152,7 @@ void cOptimizer::Visit(cIfStmt *node)
     m_ParentStack.pop();
 
     cExpr *cond = node->GetCond();
-    if (CanReduce(cond))
+    if (FlagIsEnabled(oFlags::reduce_branches) && CanReduce(cond))
     {
         if (cond->ConstValue()) ReplaceChild(node, node->GetIfStmt());
         else ReplaceChild(node, node->GetElseStmt());
@@ -155,11 +167,7 @@ void cOptimizer::Visit(cIfStmt *node)
 
 void cOptimizer::Visit(cShortCircuitExpr *node)
 {
-    m_ParentStack.push(node);
-    VisitAllChildren(node);
-    m_ParentStack.pop();
-
-    if (CanReduce(node))
+    if (FlagIsEnabled(oFlags::reduce_exprs) && CanReduce(node))
     {
         cIntExpr *intExpr = new cIntExpr(node->ConstValue());
         ReplaceChild(node, intExpr);
@@ -174,7 +182,7 @@ void cOptimizer::Visit(cShortCircuitExpr *node)
 
 void cOptimizer::Visit(cVarDecl *node)
 {
-    if (CanReduce(node))
+    if (FlagIsEnabled(oFlags::reduce_const_vars) && CanReduce(node))
     {
         ReplaceChild(node, nullptr);
         return;

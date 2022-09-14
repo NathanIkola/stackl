@@ -14,6 +14,7 @@
 #include <fstream>
 #include <unistd.h>     // for include path
 #include <limits.h>     // for include path
+#include <unordered_map>
 
 #include "lex.h"
 #include "cAstXml.h"
@@ -55,12 +56,33 @@ int  Do_Ast = 0;
 int  Do_Assembler = 1;
 int  Do_Listing = 0;
 int  Do_Type_Checks = 1;
+int  Debug_Level = 0;
+std::unordered_map<int,bool> Debug_Flags;
+
+//****************************************
+int ParseDebugFlag(char *arg)
+{
+    if (strcmp(arg, "reduce-exprs") == 0)       return cOptimizer::oFlags::reduce_exprs;
+    if (strcmp(arg, "reduce-const-vars") == 0)  return cOptimizer::oFlags::reduce_const_vars;
+    if (strcmp(arg, "reduce-branches") == 0)    return cOptimizer::oFlags::reduce_branches;
+    return -1;
+}
+
+//****************************************
+int ParseDebugLevel(char *arg)
+{
+    if ((arg[0] == 'O' || arg[0] == 'o') && (strlen(arg) == 2))
+        return arg[1] - '0';
+    return -1;
+}
+
 void Process_Args(int argc, char **argv)
 {
     for (int ii=1; ii<argc; ii++)
     {
         if (argv[ii][0] == '-')
         {
+            int debugLevel,flag;
             char *arg = &argv[ii][1];
             if (strcmp(arg, "ast") == 0)
                 Do_Ast = 1;
@@ -74,7 +96,7 @@ void Process_Args(int argc, char **argv)
             else if (strcmp(arg, "help") == 0)
             {
                 std::cout << "stacklc -c -help -no_types -version "
-                            "-yydebug -dbg -ast <file>\n";
+                            "-yydebug -dbg -ast -o1 <file>\n";
                 exit(0);
             }
             else if (strcmp(arg, "list") == 0)
@@ -94,6 +116,14 @@ void Process_Args(int argc, char **argv)
             }
             else if (strcmp(arg, "yydebug") == 0)
                 yydebug = 1;
+            else if ((flag = ParseDebugFlag(arg)) != -1)
+            {
+                Debug_Flags.emplace(flag, true);
+            }
+            else if ((debugLevel = ParseDebugLevel(arg)) != -1)
+            {
+                Debug_Level = debugLevel;
+            }
             else
                 std::cerr << "Unrecognized option '" << argv[ii] << "'" << std::endl;
         }
@@ -187,7 +217,7 @@ int main(int argc, char **argv)
         cSizeOffset sizer;
         sizer.VisitAllNodes(program);
 
-        cOptimizer optimizer;
+        cOptimizer optimizer(Debug_Flags, Debug_Level);
         optimizer.VisitAllNodes(program);
 
         if (Do_Ast)

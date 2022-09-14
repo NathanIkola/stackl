@@ -1,6 +1,8 @@
 source=$1
+addl_flags=$2
 shift
-./stacklc -c test/$source.c 2> out
+shift
+./stacklc $addl_flags -c test/$source.c 2> out
 RETVAL=$?
 if [ $RETVAL -eq 0 ]
 then

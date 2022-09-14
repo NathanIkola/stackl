@@ -1,12 +1,13 @@
 #pragma once
 
 #include <stack>
+#include <unordered_map>
 #include "cVisitor.h"
 
 class cOptimizer : public cVisitor
 {
     public:
-        cOptimizer();
+        cOptimizer(const std::unordered_map<int,bool>& flags, int oLevel = 0);
         ~cOptimizer();
 
         virtual void VisitAllNodes(cAstNode *node);
@@ -55,8 +56,18 @@ class cOptimizer : public cVisitor
         virtual void Visit(cVarDecl *node);
         virtual void Visit(cVarRef *node);
         virtual void Visit(cWhileStmt *node);
+
+        enum oFlags
+        {
+            reduce_exprs = 1,
+            reduce_const_vars,
+            reduce_branches,
+        };
     protected:
         std::stack<cAstNode*> m_ParentStack;
+        std::unordered_map<int,bool> m_flags;
+        inline bool FlagIsEnabled(int flag) { return m_flags.find(flag) != m_flags.end(); }
+        inline void EnableFlag(int flag) { m_flags.emplace(flag, true); }
         void ClearChildren();
         void ReplaceChild(cAstNode *existingNode, cAstNode *newNode);
 };
