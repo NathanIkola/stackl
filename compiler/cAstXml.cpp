@@ -251,6 +251,7 @@ void cAstXml::Visit(cVarDecl *node)
     string attr = " offset=\"" + std::to_string(node->GetOffset()) + "\" ";
     if (node->IsGlobal()) attr += " global=\"true\" ";
     if (node->IsStatic()) attr += " static=\"true\" ";
+    if (node->IsConst()) attr += " const=\"true\" ";
     DefaultVisit(node, "VarDecl", attr);
 }
 void cAstXml::Visit(cVarRef *node){

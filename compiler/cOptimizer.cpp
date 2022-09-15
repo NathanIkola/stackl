@@ -65,7 +65,7 @@ static bool CanReduce(cExpr *node)
 
 static bool CanReduce(cDecl *node)
 {
-    return node->IsConst() && node->IsInt();
+    return node->IsConst() && node->GetType()->IsInt();
 }
 
 //************************************************
@@ -103,21 +103,6 @@ void cOptimizer::Visit(cCastExpr *node)
 void cOptimizer::Visit(cPlainVarRef *node)
 {
     if (FlagIsEnabled(oFlags::reduce_const_vars) && CanReduce(node))
-    {
-        cIntExpr *intExpr = new cIntExpr(node->ConstValue());
-        ReplaceChild(node, intExpr);
-    }
-    else
-    {
-        m_ParentStack.push(node); 
-        VisitAllChildren(node); 
-        m_ParentStack.pop();
-    }
-}
-
-void cOptimizer::Visit(cSizeofExpr *node)
-{
-    if (FlagIsEnabled(oFlags::reduce_exprs) && node->IsConst())
     {
         cIntExpr *intExpr = new cIntExpr(node->ConstValue());
         ReplaceChild(node, intExpr);
@@ -215,6 +200,7 @@ void cOptimizer::Visit(cPostfixExpr *node)      { m_ParentStack.push(node); Visi
 void cOptimizer::Visit(cPragma *node)           { m_ParentStack.push(node); VisitAllChildren(node); m_ParentStack.pop(); }
 void cOptimizer::Visit(cPrefixExpr *node)       { m_ParentStack.push(node); VisitAllChildren(node); m_ParentStack.pop(); }
 void cOptimizer::Visit(cReturnStmt *node)       { m_ParentStack.push(node); VisitAllChildren(node); m_ParentStack.pop(); }
+void cOptimizer::Visit(cSizeofExpr *node)       { m_ParentStack.push(node); VisitAllChildren(node); m_ParentStack.pop(); }
 void cOptimizer::Visit(cStmt *node)             { m_ParentStack.push(node); VisitAllChildren(node); m_ParentStack.pop(); }
 void cOptimizer::Visit(cStmtsList *node)        { m_ParentStack.push(node); VisitAllChildren(node); m_ParentStack.pop(); }
 void cOptimizer::Visit(cStringLit *node)        { m_ParentStack.push(node); VisitAllChildren(node); m_ParentStack.pop(); }

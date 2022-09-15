@@ -214,11 +214,11 @@ int main(int argc, char **argv)
     // need to recheck total_errors because semantics checks could add errors
     if (result == 0 && total_errors == 0)
     {
-        cSizeOffset sizer;
-        sizer.VisitAllNodes(program);
-
         cOptimizer optimizer(Debug_Flags, Debug_Level);
         optimizer.VisitAllNodes(program);
+
+        cSizeOffset sizer;
+        sizer.VisitAllNodes(program);
 
         if (Do_Ast)
         {
