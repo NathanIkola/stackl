@@ -428,7 +428,7 @@ stmt:       decl
             }
 
         |   SWITCH '(' expr ')' stmt
-            { semantic_error("Not implemented " + std::to_string(__LINE__), yylineno); }
+            { $$ = new cSwitchStmt($3, $5); }
         |   expr ';'
             { 
                 $$ = new cExprStmt($1); 
@@ -481,9 +481,9 @@ asm_stmt : ASM '(' string_lit ')'
 labeled_stmt: IDENTIFIER ':' stmt
             { $$ = new cLabeledStmt($1, $3); }
         |   CASE constant_expression ':' stmt
-            { semantic_error("Not implemented " + std::to_string(__LINE__), yylineno); }
+            { $$ = new cCaseStmt($2, $4); }
         |   DEFAULT ':' stmt
-            { semantic_error("Not implemented " + std::to_string(__LINE__), yylineno); }
+            { $$ = new cCaseStmt($3); }
 
 lval:     unary_expression
             { $$ = $1; }

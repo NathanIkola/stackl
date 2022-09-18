@@ -22,6 +22,19 @@ void cSemantics::VisitAllNodes(cAstNode *node)
     node->Visit(this); 
 }
 
+void cSemantics::Visit(cCaseStmt *node)
+{
+    if (m_switchLevel <= 0)
+    {
+        semantic_error("Case statement encountered outside of the body of a switch statement", node->LineNumber());
+    }
+    if (!cTypeDecl::IsCompatibleWith(m_switchType, node->GetExpr()->GetType()))
+    {
+        semantic_error("Case statement type is incompatible with switch condition", node->LineNumber());
+    }
+    VisitAllChildren(node);
+}
+
 void cSemantics::Visit(cFuncDecl *node)
 {
     m_funcReturnType = node->ReturnType();
@@ -93,6 +106,18 @@ void cSemantics::Visit(cReturnStmt *node)
         semantic_error("Return statement type is incompatible with function declaration",
             node->LineNumber());
     }
+}
+
+void cSemantics::Visit(cSwitchStmt *node)
+{
+    ++m_switchLevel;
+    cTypeDecl* outerSwitchType = m_switchType;
+    m_switchType = node->GetExpr()->GetType();
+
+    node->Visit(this);
+
+    m_switchType = outerSwitchType;
+    --m_switchLevel;
 }
 
 //***********************************

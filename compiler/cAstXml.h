@@ -29,6 +29,7 @@ class cAstXml : public cVisitor
         virtual void Visit(cAstNode *node);
         virtual void Visit(cBaseDeclNode *node);
         virtual void Visit(cBinaryExpr *node);
+        virtual void Visit(cCaseStmt *node);
         virtual void Visit(cDecl *node);
         virtual void Visit(cDeclsList *node);
         virtual void Visit(cExpr *node);
@@ -57,6 +58,7 @@ class cAstXml : public cVisitor
         virtual void Visit(cStructDeref *node);
         virtual void Visit(cStructRef *node);
         virtual void Visit(cStructType *node);
+        virtual void Visit(cSwitchStmt *node);
         virtual void Visit(cSymbol *node);
         virtual void Visit(cTypeDecl *node);
         virtual void Visit(cTypedef *node);

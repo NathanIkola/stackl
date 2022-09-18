@@ -173,6 +173,10 @@ void cCodeGen::Visit(cBinaryExpr *node)
     }
     EmitInst(node->OpAsString());
 }
+void cCodeGen::Visit(cCaseStmt *node)
+{
+
+}
 //void cCodeGen::Visit(cDecl *node)               { VisitAllChildren(node); }
 //void cCodeGen::Visit(cDeclsList *node)          { VisitAllChildren(node); }
 void cCodeGen::Visit(cDoWhileStmt *node)
@@ -522,6 +526,13 @@ void cCodeGen::Visit(cStructRef *node)
 }
 
 //void cCodeGen::Visit(cStructType *node)
+void cCodeGen::Visit(cSwitchStmt *node)
+{
+    string lastSwitchEnd = m_switchEndLabel;
+    m_switchEndLabel = GenerateLabel();
+    node->Visit(this);
+    m_switchEndLabel = lastSwitchEnd;
+}
 //void cCodeGen::Visit(cSymbol *node)             { VisitAllChildren(node); }
 //void cCodeGen::Visit(cTypeDecl *node)           { VisitAllChildren(node); }
 

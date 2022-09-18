@@ -92,6 +92,12 @@ void cAstXml::Visit(cBinaryExpr *node)
     string attr = " op=\"" + node->OpToString() + "\" ";
     DefaultVisit(node, "BinaryExpr", attr);
 }
+void cAstXml::Visit(cCaseStmt *node)
+{
+    string attr = "";
+    if (node->IsDefault()) attr += " default=\"true\"";
+    DefaultVisit(node, "CaseStmt", attr);
+}
 void cAstXml::Visit(cDecl *node)
 {
     DefaultVisit(node, "Decl");
@@ -220,6 +226,10 @@ void cAstXml::Visit(cStructType *node)
 {
     string attr = " size=\"" + std::to_string(node->Size()) + "\" ";
     DefaultVisit(node, "StructType", attr);
+}
+void cAstXml::Visit(cSwitchStmt *node)
+{
+    DefaultVisit(node, "SwitchStmt");
 }
 void cAstXml::Visit(cSymbol *node)
 {

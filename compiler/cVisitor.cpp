@@ -17,6 +17,7 @@ void cVisitor::Visit(cAssignExpr *node)         { VisitAllChildren(node); }
 void cVisitor::Visit(cAstNode *node)            { VisitAllChildren(node); }
 void cVisitor::Visit(cBaseDeclNode *node)       { VisitAllChildren(node); }
 void cVisitor::Visit(cBinaryExpr *node)         { VisitAllChildren(node); }
+void cVisitor::Visit(cCaseStmt *node)           { VisitAllChildren(node); }
 void cVisitor::Visit(cCastExpr *node)           { VisitAllChildren(node); }
 void cVisitor::Visit(cDecl *node)               { VisitAllChildren(node); }
 void cVisitor::Visit(cDeclsList *node)          { VisitAllChildren(node); }
@@ -47,6 +48,7 @@ void cVisitor::Visit(cStringLit *node)          { VisitAllChildren(node); }
 void cVisitor::Visit(cStructDeref *node)        { VisitAllChildren(node); }
 void cVisitor::Visit(cStructRef *node)          { VisitAllChildren(node); }
 void cVisitor::Visit(cStructType *node)         { VisitAllChildren(node); }
+void cVisitor::Visit(cSwitchStmt *node)         { VisitAllChildren(node); }
 void cVisitor::Visit(cSymbol *node)             { VisitAllChildren(node); }
 void cVisitor::Visit(cTypeDecl *node)           { VisitAllChildren(node); }
 void cVisitor::Visit(cTypedef *node)            { VisitAllChildren(node); }

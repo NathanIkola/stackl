@@ -52,6 +52,7 @@ void cGenAddr::Visit(cArrayRef *node)
 //void cGenAddr::Visit(cAstNode *node)            { VisitAllChildren(node); }
 //void cGenAddr::Visit(cBaseDeclNode *node)       { VisitAllChildren(node); }
 //void cGenAddr::Visit(cBinaryExpr *node)         { VisitAllChildren(node); }
+//void cGenAddr::Visit(cCaseExpr *node)           { VisitAllChildren(node); }
 //void cGenAddr::Visit(cDecl *node)               { VisitAllChildren(node); }
 //void cGenAddr::Visit(cDeclsList *node)          { VisitAllChildren(node); }
 //void cGenAddr::Visit(cExpr *node)               { VisitAllChildren(node); }
@@ -119,6 +120,7 @@ void cGenAddr::Visit(cStructRef *node)
     m_CodeGen->EmitInst("PLUS");
 }
 //void cGenAddr::Visit(cStructType *node)         { VisitAllChildren(node); }
+//void cGenAddr::Visit(cSwitch *node)             { VisitAllChildren(node); }
 //void cGenAddr::Visit(cSymbol *node)             { VisitAllChildren(node); }
 //void cGenAddr::Visit(cTypeDecl *node)           { VisitAllChildren(node); }
 //void cGenAddr::Visit(cUnaryExpr *node)          { VisitAllChildren(node); }
