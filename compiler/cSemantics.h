@@ -60,9 +60,9 @@ class cSemantics : public cVisitor
         //virtual void Visit(cVarRef *node);
         virtual void Visit(cWhileStmt *node);
     protected:
-        cTypeDecl *m_funcReturnType;
+        cTypeDecl *m_funcReturnType = nullptr;
 
-        std::stack<std::unordered_map<std::string, int>> m_funcLabelStack;
+        std::stack<std::unordered_map<std::string, int>> m_funcLabelStack = {};
         void IncreaseFunctionScope();
         void DecreaseFunctionScope();
         bool InFunctionScope();
@@ -70,6 +70,7 @@ class cSemantics : public cVisitor
         void SetLabelLine(std::string label, int lineNumber);
         int GetLabelLine(std::string label);
 
-        int m_switchLevel;
-        cTypeDecl* m_switchType;
+        int m_jumpContextLevel = 0;
+        bool m_switchHasDefault = false;
+        cTypeDecl* m_switchType = nullptr;
 };

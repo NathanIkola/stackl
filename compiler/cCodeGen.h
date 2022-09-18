@@ -1,7 +1,7 @@
 #pragma once
 
 #include <fstream>
-#include <stack>
+#include <vector>
 
 #include "cVisitor.h"
 
@@ -74,13 +74,20 @@ class cCodeGen : public cVisitor
         void EmitStringLit(std::string str, std::string label);
         std::string GenerateLabel();
         std::string GenerateGotoLabel(std::string label);
+        std::string GenerateSwitchLabel(std::string label, int caseExpr);
 
         static const int STACKL_WORD_SIZE;
     protected:
         std::ofstream m_Output;
         int m_Next_Label = 1;
         cGenAddr *m_GenAddr;
-        std::string m_switchEndLabel;
+
+        std::string m_startLabel;
+        std::string m_endLabel;
+        std::string m_switchDefault;
+        std::string m_funcName;
+
+        std::vector<int> m_switchCases;
 
         void Write_Header();
         void EmitLineNumber(cAstNode *node);

@@ -8,8 +8,6 @@
 using std::string;
 using FunctionLabelScope = std::unordered_map<string, int>;
 
-static int s_JumpContextLevel;
-
 //***********************************
 cSemantics::cSemantics() : cVisitor()
 {
@@ -26,7 +24,7 @@ void cSemantics::VisitAllNodes(cAstNode *node)
 
 void cSemantics::Visit(cBreakStmt *node)
 {
-    if (s_JumpContextLevel == 0)
+    if (m_jumpContextLevel == 0)
     {
         semantic_error("Break statement not within a loop or switch", node->LineNumber());
     }
@@ -35,20 +33,27 @@ void cSemantics::Visit(cBreakStmt *node)
 
 void cSemantics::Visit(cCaseStmt *node)
 {
-    if (m_switchLevel <= 0)
+    if (m_jumpContextLevel <= 0)
     {
         semantic_error("Case statement encountered outside of the body of a switch statement", node->LineNumber());
     }
-    if (!cTypeDecl::IsCompatibleWith(m_switchType, node->GetExpr()->GetType()))
+    else 
     {
-        semantic_error("Case statement type is incompatible with switch condition", node->LineNumber());
+        if (!node->IsDefault() && !cTypeDecl::IsCompatibleWith(m_switchType, node->GetExpr()->GetType()))
+        {
+            semantic_error("Case statement type is incompatible with switch condition", node->LineNumber());
+        }
+        if (m_switchHasDefault && node->IsDefault())
+        {
+            semantic_error("Default case already defined", node->LineNumber());
+        }
     }
     VisitAllChildren(node);
 }
 
 void cSemantics::Visit(cContinueStmt *node)
 {
-    if (s_JumpContextLevel == 0)
+    if (m_jumpContextLevel == 0)
     {
         semantic_error("Continue statement not within a loop", node->LineNumber());
     }
@@ -57,16 +62,16 @@ void cSemantics::Visit(cContinueStmt *node)
 
 void cSemantics::Visit(cDoWhileStmt *node)
 {
-    ++s_JumpContextLevel;
+    m_jumpContextLevel += 1;
     VisitAllChildren(node);
-    --s_JumpContextLevel;
+    m_jumpContextLevel -= 1;
 }
 
 void cSemantics::Visit(cForStmt *node)
 {
-    ++s_JumpContextLevel;
+    m_jumpContextLevel += 1;
     VisitAllChildren(node);
-    --s_JumpContextLevel;
+    m_jumpContextLevel -= 1;
 }
 
 void cSemantics::Visit(cFuncDecl *node)
@@ -143,21 +148,24 @@ void cSemantics::Visit(cReturnStmt *node)
 
 void cSemantics::Visit(cSwitchStmt *node)
 {
-    ++m_switchLevel;
+    m_jumpContextLevel += 1;
+    bool oldHasDefault = m_switchHasDefault;
+    m_switchHasDefault = false;
     cTypeDecl* outerSwitchType = m_switchType;
     m_switchType = node->GetExpr()->GetType();
 
-    node->Visit(this);
+    VisitAllChildren(node);
 
+    m_switchHasDefault = oldHasDefault;
     m_switchType = outerSwitchType;
-    --m_switchLevel;
+    m_jumpContextLevel -= 1;
 }
 
 void cSemantics::Visit(cWhileStmt *node)
 {
-    ++s_JumpContextLevel;
+    m_jumpContextLevel += 1;
     VisitAllChildren(node);
-    --s_JumpContextLevel;
+    m_jumpContextLevel -= 1;
 }
 
 //***********************************

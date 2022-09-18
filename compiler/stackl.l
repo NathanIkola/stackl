@@ -118,6 +118,7 @@ identifier      {letter}({letter}|{digit}|"_")*
 "static"                    Return(STATIC);
 "const"                     Return(CONST);
 "#define"                   Return(DEFINE);
+"default"                   Return(DEFAULT);
 "volatile"                  Return(VOLATILE);
 "break"                     Return(BREAK);
 "continue"                  Return(CONTINUE);

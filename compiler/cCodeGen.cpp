@@ -1,7 +1,7 @@
 #include <iostream>
 #include <fstream>
 #include <string>
-#include <stack>
+#include <algorithm>
 
 #include "../interp/machine_def.h"
 
@@ -11,9 +11,6 @@
 #include "../version.h"
 
 using std::string;
-
-static std::stack<string> sFuncStack;
-static std::stack<std::pair<std::string,std::string>> s_JumpLabels;
 
 const int cCodeGen::STACKL_WORD_SIZE = WORD_SIZE;
 
@@ -176,26 +173,43 @@ void cCodeGen::Visit(cBinaryExpr *node)
 }
 void cCodeGen::Visit(cBreakStmt *node)
 {
-    EmitInst("JUMP", s_JumpLabels.top().second);
+    EmitInst("JUMP", m_endLabel);
 }
 void cCodeGen::Visit(cCaseStmt *node)
 {
-    
+    if (node->IsDefault())
+    {
+        m_switchDefault = GenerateLabel();
+        EmitLabel(m_switchDefault);
+        node->GetStmt()->Visit(this);
+    }
+    else
+    {
+        int exprVal = node->GetExpr()->ConstValue();
+        m_switchCases.push_back(exprVal);
+        std::string caseLabel = GenerateSwitchLabel(m_endLabel, exprVal);
+        EmitLabel(caseLabel);
+        node->GetStmt()->Visit(this);
+    }
 }
 void cCodeGen::Visit(cContinueStmt *node)
 {
-    EmitInst("JUMP", s_JumpLabels.top().first);
+    EmitInst("JUMP", m_startLabel);
 }
 //void cCodeGen::Visit(cDecl *node)               { VisitAllChildren(node); }
 //void cCodeGen::Visit(cDeclsList *node)          { VisitAllChildren(node); }
 void cCodeGen::Visit(cDoWhileStmt *node)
 {
     EmitLineNumber(node);
+    std::string old_start = m_startLabel;
+    std::string old_end = m_endLabel;
+
     std::string start_loop = GenerateLabel();
     std::string end_loop = GenerateLabel();
     std::string cond = GenerateLabel();
-    std::pair<std::string, std::string> pair(cond, end_loop);
-    s_JumpLabels.push(pair);
+
+    m_startLabel = cond;
+    m_endLabel = end_loop;
 
     EmitLabel(start_loop);
     node->GetStmt()->Visit(this);
@@ -204,7 +218,9 @@ void cCodeGen::Visit(cDoWhileStmt *node)
     EmitInst("JUMPE", end_loop);
     EmitInst("JUMP", start_loop);
     EmitLabel(end_loop);
-    s_JumpLabels.pop();
+
+    m_startLabel = old_start;
+    m_endLabel = old_end;
 }
 //void cCodeGen::Visit(cExpr *node)               { VisitAllChildren(node); }
 
@@ -219,11 +235,15 @@ void cCodeGen::Visit(cExprStmt *node)
 void cCodeGen::Visit(cForStmt *node)
 {
     EmitLineNumber(node);
+    std::string old_start = m_startLabel;
+    std::string old_end = m_endLabel;
+
     std::string start_loop = GenerateLabel();
     std::string end_loop = GenerateLabel();
     std::string update = GenerateLabel();
-    std::pair<std::string, std::string> pair(update, end_loop);
-    s_JumpLabels.push(pair);
+
+    m_startLabel = update;
+    m_endLabel = end_loop;
 
     node->GetInit()->Visit(this);
     EmitInst("POP");            // need to handle VOID
@@ -236,7 +256,9 @@ void cCodeGen::Visit(cForStmt *node)
     EmitInst("POP");            // need to handle VOID
     EmitInst("JUMP", start_loop);
     EmitLabel(end_loop);
-    s_JumpLabels.pop();
+    
+    m_startLabel = old_start;
+    m_endLabel = old_end;
 }
 
 void cCodeGen::Visit(cFuncCall *node)
@@ -275,9 +297,10 @@ void cCodeGen::Visit(cFuncDecl *node)
             EmitInst("ADJSP", adj_size);
         }
 
-        sFuncStack.push(node->GetFuncName());
+        std::string oldFuncName = m_funcName;
+        m_funcName = node->GetFuncName();
         node->GetStmts()->Visit(this);
-        sFuncStack.pop();
+        m_funcName = oldFuncName;
 
         // Force return statement
         /* This is now taken care of in cSemantic visitor
@@ -545,12 +568,42 @@ void cCodeGen::Visit(cStructRef *node)
 }
 
 //void cCodeGen::Visit(cStructType *node)
+
 void cCodeGen::Visit(cSwitchStmt *node)
 {
-    string lastSwitchEnd = m_switchEndLabel;
-    m_switchEndLabel = GenerateLabel();
-    node->Visit(this);
-    m_switchEndLabel = lastSwitchEnd;
+    string lastSwitchEnd = m_endLabel;
+    string lastDefault = m_switchDefault;
+    std::vector<int> oldCases = m_switchCases;
+    m_switchCases = std::vector<int>{};
+    m_switchDefault = "";
+    string switchStart = GenerateLabel();
+    m_endLabel = GenerateLabel();
+
+    EmitInst("JUMP", switchStart);
+    node->GetBody()->Visit(this);
+    // if we reach the end of the body (i.e. no break in last case), jump past the lookup table
+    EmitInst("JUMP", m_endLabel);
+
+    EmitLabel(switchStart);
+    node->GetExpr()->Visit(this);
+
+    // it would be more performant to do a binary search over the cases instead of
+    // the if/else if structure used here, but that would also generate extra instructions
+    for (int c = 0; c < m_switchCases.size(); ++c)
+    {
+        EmitInst("DUP");
+        EmitInst("PUSH", m_switchCases[c]);
+        EmitInst("NE");
+        EmitInst("JUMPE", GenerateSwitchLabel(m_endLabel, m_switchCases[c]));
+    }
+
+    // if we get to the end and have not jumped yet, take the default if it exists
+    if (m_switchDefault != "") { EmitInst("JUMP", m_switchDefault); }
+
+    EmitLabel(m_endLabel);
+    m_endLabel = lastSwitchEnd;
+    m_switchDefault = lastDefault;
+    m_switchCases = oldCases;
 }
 //void cCodeGen::Visit(cSymbol *node)             { VisitAllChildren(node); }
 //void cCodeGen::Visit(cTypeDecl *node)           { VisitAllChildren(node); }
@@ -614,10 +667,13 @@ void cCodeGen::Visit(cVarDecl *node)
 void cCodeGen::Visit(cWhileStmt *node)
 {
     EmitLineNumber(node);
+    std::string old_start = m_startLabel;
+    std::string old_end = m_endLabel;
+
     std::string start_loop = GenerateLabel();
     std::string end_loop = GenerateLabel();
-    std::pair<std::string, std::string> pair(start_loop, end_loop);
-    s_JumpLabels.push(pair);
+    m_startLabel = start_loop;
+    m_endLabel = end_loop;
 
     EmitLabel(start_loop);
     node->GetCond()->Visit(this);
@@ -625,7 +681,9 @@ void cCodeGen::Visit(cWhileStmt *node)
     node->GetStmt()->Visit(this);
     EmitInst("JUMP", start_loop);
     EmitLabel(end_loop);
-    s_JumpLabels.pop();
+
+    m_startLabel = old_start;
+    m_endLabel = old_end;
 }
 
 //*****************************************
@@ -662,7 +720,13 @@ string cCodeGen::GenerateLabel()
 // Generate a unique label for GOTO statements
 string cCodeGen::GenerateGotoLabel(string label)
 {
-    return "$$LABEL_" + sFuncStack.top() + "_" + label;
+    return "$$LABEL_" + m_funcName + "_" + label;
+}
+//*****************************************
+// Generate a unique label for a switch statement case
+string cCodeGen::GenerateSwitchLabel(string label, int caseExpr)
+{
+    return label + "_CASE_" + std::to_string(caseExpr);
 }
 //*****************************************
 void cCodeGen::EmitStringLit(string str, string label)
