@@ -13,6 +13,7 @@
 using std::string;
 
 static std::stack<string> sFuncStack;
+static std::stack<std::pair<std::string,std::string>> s_JumpLabels;
 
 const int cCodeGen::STACKL_WORD_SIZE = WORD_SIZE;
 
@@ -173,9 +174,17 @@ void cCodeGen::Visit(cBinaryExpr *node)
     }
     EmitInst(node->OpAsString());
 }
+void cCodeGen::Visit(cBreakStmt *node)
+{
+    EmitInst("JUMP", s_JumpLabels.top().second);
+}
 void cCodeGen::Visit(cCaseStmt *node)
 {
-
+    
+}
+void cCodeGen::Visit(cContinueStmt *node)
+{
+    EmitInst("JUMP", s_JumpLabels.top().first);
 }
 //void cCodeGen::Visit(cDecl *node)               { VisitAllChildren(node); }
 //void cCodeGen::Visit(cDeclsList *node)          { VisitAllChildren(node); }
@@ -184,13 +193,18 @@ void cCodeGen::Visit(cDoWhileStmt *node)
     EmitLineNumber(node);
     std::string start_loop = GenerateLabel();
     std::string end_loop = GenerateLabel();
+    std::string cond = GenerateLabel();
+    std::pair<std::string, std::string> pair(cond, end_loop);
+    s_JumpLabels.push(pair);
 
     EmitLabel(start_loop);
     node->GetStmt()->Visit(this);
+    EmitLabel(cond);
     node->GetCond()->Visit(this);
     EmitInst("JUMPE", end_loop);
     EmitInst("JUMP", start_loop);
     EmitLabel(end_loop);
+    s_JumpLabels.pop();
 }
 //void cCodeGen::Visit(cExpr *node)               { VisitAllChildren(node); }
 
@@ -207,6 +221,9 @@ void cCodeGen::Visit(cForStmt *node)
     EmitLineNumber(node);
     std::string start_loop = GenerateLabel();
     std::string end_loop = GenerateLabel();
+    std::string update = GenerateLabel();
+    std::pair<std::string, std::string> pair(update, end_loop);
+    s_JumpLabels.push(pair);
 
     node->GetInit()->Visit(this);
     EmitInst("POP");            // need to handle VOID
@@ -214,10 +231,12 @@ void cCodeGen::Visit(cForStmt *node)
     node->GetExpr()->Visit(this);
     EmitInst("JUMPE", end_loop);
     node->GetStmt()->Visit(this);
+    EmitLabel(update);
     node->GetUpdate()->Visit(this);
     EmitInst("POP");            // need to handle VOID
     EmitInst("JUMP", start_loop);
     EmitLabel(end_loop);
+    s_JumpLabels.pop();
 }
 
 void cCodeGen::Visit(cFuncCall *node)
@@ -597,6 +616,8 @@ void cCodeGen::Visit(cWhileStmt *node)
     EmitLineNumber(node);
     std::string start_loop = GenerateLabel();
     std::string end_loop = GenerateLabel();
+    std::pair<std::string, std::string> pair(start_loop, end_loop);
+    s_JumpLabels.push(pair);
 
     EmitLabel(start_loop);
     node->GetCond()->Visit(this);
@@ -604,6 +625,7 @@ void cCodeGen::Visit(cWhileStmt *node)
     node->GetStmt()->Visit(this);
     EmitInst("JUMP", start_loop);
     EmitLabel(end_loop);
+    s_JumpLabels.pop();
 }
 
 //*****************************************

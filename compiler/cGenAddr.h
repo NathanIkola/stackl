@@ -19,7 +19,9 @@ class cGenAddr : public cVisitor
         //virtual void Visit(cAstNode *node);
         //virtual void Visit(cBaseDeclNode *node);
         //virtual void Visit(cBinaryExpr *node);
+        //virtual void Visit(cBreakStmt *node);
         //virtual void Visit(cCaseStmt *node);
+        //virtual void Visit(cContinueStmt *node);
         //virtual void Visit(cDecl *node);
         //virtual void Visit(cDeclsList *node);
         //virtual void Visit(cExpr *node);
