@@ -39,13 +39,26 @@ void cSemantics::Visit(cCaseStmt *node)
     }
     else 
     {
-        if (!node->IsDefault() && !cTypeDecl::IsCompatibleWith(m_switchType, node->GetExpr()->GetType()))
+        if (!node->IsDefault())
         {
-            semantic_error("Case statement type is incompatible with switch condition", node->LineNumber());
+            if (!cTypeDecl::IsCompatibleWith(m_switchType, node->GetExpr()->GetType()))
+            {
+                semantic_error("Case statement type is incompatible with switch condition", node->LineNumber());
+            }
+
+            if (m_switchCases.find(node->GetExpr()->ConstValue()) != m_switchCases.end())
+            {
+                semantic_error("Duplicate cases defined", node->LineNumber());
+            }
+            else { m_switchCases.insert({node->GetExpr()->ConstValue(), true}); }
         }
-        if (m_switchHasDefault && node->IsDefault())
+        else  
         {
-            semantic_error("Default case already defined", node->LineNumber());
+            if (m_switchHasDefault)
+            {
+                semantic_error("Default case already defined", node->LineNumber()); 
+            }
+            m_switchHasDefault = true;
         }
     }
     VisitAllChildren(node);
@@ -150,6 +163,8 @@ void cSemantics::Visit(cSwitchStmt *node)
 {
     m_jumpContextLevel += 1;
     bool oldHasDefault = m_switchHasDefault;
+    std::unordered_map<int, bool> oldCases = m_switchCases;
+    m_switchCases = {};
     m_switchHasDefault = false;
     cTypeDecl* outerSwitchType = m_switchType;
     m_switchType = node->GetExpr()->GetType();
@@ -157,6 +172,7 @@ void cSemantics::Visit(cSwitchStmt *node)
     VisitAllChildren(node);
 
     m_switchHasDefault = oldHasDefault;
+    m_switchCases = oldCases;
     m_switchType = outerSwitchType;
     m_jumpContextLevel -= 1;
 }

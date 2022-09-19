@@ -1,0 +1,3 @@
+ERROR: Duplicate cases defined on line 11 of test/test58.c
+ERROR: Default case already defined on line 19 of test/test58.c
+2 Errors in compile

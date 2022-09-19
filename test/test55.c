@@ -1,4 +1,4 @@
-// Test that return types and existence matches function delcaration
+// Test that return types and existence matches function declaration
 int foo()
 {
     return;

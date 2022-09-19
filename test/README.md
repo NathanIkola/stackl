@@ -62,7 +62,15 @@ Makefile?
 39) Test that pre-inc doesn't mess up the stack
 40) Test trap handlers
 49) Test gen_io device
-
+50) Test handling of arrays of pointers
+51) Test that arrays of pointers can be passed to functions
+52) Test conversion of hex numbers
+53) Test user mode machine checks
+54) Test INP, EXEC, and PRINTS functionality
+55) Test return types and existence matches function declaration
+56) Test that empty compilation units don't cause seg faults
+57) Test switch statement functionality
+58) Test switch statement semantics
 
 n) use interrupt to test stack behavior for
     all operators as expressions

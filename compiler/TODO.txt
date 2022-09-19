@@ -1,6 +1,5 @@
 check return statements in functions
 
-switch statements
 function pointers
 ternary operator
 

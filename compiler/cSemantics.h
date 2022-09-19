@@ -72,5 +72,6 @@ class cSemantics : public cVisitor
 
         int m_jumpContextLevel = 0;
         bool m_switchHasDefault = false;
+        std::unordered_map<int, bool> m_switchCases = {};
         cTypeDecl* m_switchType = nullptr;
 };
